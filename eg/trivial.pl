@@ -4,7 +4,7 @@ use strict;
 use diagnostics;
 use Data::Dumper;
 
-use lib qw (lib/);
+use lib qw (../blib/lib);
 
 use Graph::Undirected;
 use Graph::Layouter::Spring;

@@ -12,8 +12,8 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Spring.pm,v 1.2 2004/04/04 00:00:07 pasky Exp $
-$VERSION = 0.01;
+# $Id: Spring.pm,v 1.7 2004/04/06 15:24:14 pasky Exp $
+$VERSION = 0.02;
 
 
 =head1 SYNOPSIS
@@ -69,7 +69,8 @@ this is expected to get configurable soon.
 
 # TODO : _This_ should be all adjustable!
 
-my $iterations = 1000;
+my $iterations = 100; # undef for no iterations limit
+my $max_wait = 10; # (in seconds) undef for no time limit
 my $max_repulsive_force_distance = 6;
 my $k = 2;
 my $c = 0.01;
@@ -83,7 +84,18 @@ sub layout {
 	# Cache
 	my @vertices = $graph->vertices;
 
-	for (my $i = 0; $i < $iterations; $i++) {
+	# Bound execution based on time
+	my $end;
+	$end = time + $max_wait if defined $max_wait;
+
+	unless (defined $end or defined $iterations) {
+		croak "You did not bound the layouting loop by either time or iterations count!";
+	}
+
+	for (my $i = 0;
+	     (defined $iterations ? $i < $iterations : 1)
+	     	and (defined $end ? time <= $end : 1);
+	     $i++) {
 		_layout_iteration($graph, \@vertices);
 	}
 
@@ -147,9 +159,9 @@ sub _layout_attractive($$$) {
 	my $d = sqrt $d2;
 	if ($d > $max_repulsive_force_distance) {
 		$d = $max_repulsive_force_distance;
+		$d2 = $d * $d;
 	}
 
-	$d2 = $d * $d;
 	my $attractive_force = ($d2 - $k * $k) / $k;
 	my $weight = $graph->get_attribute('weight', $vertex1, $vertex2);
 	$weight = 1 if not $weight or $weight < 1;
@@ -239,11 +251,15 @@ This code is distributed under the same copyright terms as
 Perl itself.
 
 
+The algorithm is based on a spring-style layouter of a Java-based social
+network tracker PieSpy written by Paul Mutton E<lt>paul@jibble.orgE<gt>.
+
+
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
-$Id: Spring.pm,v 1.2 2004/04/04 00:00:07 pasky Exp $
+$Id: Spring.pm,v 1.7 2004/04/06 15:24:14 pasky Exp $
 
 =cut
 

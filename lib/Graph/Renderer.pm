@@ -12,8 +12,8 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Renderer.pm,v 1.1.1.1 2004/04/03 22:58:29 pasky Exp $
-$VERSION = 0.01;
+# $Id: Renderer.pm,v 1.3 2004/04/06 15:24:14 pasky Exp $
+$VERSION = 0.02;
 
 
 =head1 SYNOPSIS
@@ -159,6 +159,8 @@ sub _max_weight($) {
 sub _transpose_coord($$$$) {
 	my ($virtual, $min, $max, $size) = @_;
 
+	$max++ if $max == $min; # Division by zero protector
+
 	$size * ($virtual - $min) / ($max - $min);
 }
 
@@ -189,9 +191,9 @@ Perl itself.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
-$Id: Renderer.pm,v 1.1.1.1 2004/04/03 22:58:29 pasky Exp $
+$Id: Renderer.pm,v 1.3 2004/04/06 15:24:14 pasky Exp $
 
 =cut
 

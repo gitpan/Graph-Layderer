@@ -12,8 +12,8 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Imager.pm,v 1.2 2004/04/04 00:00:07 pasky Exp $
-$VERSION = 0.01;
+# $Id: Imager.pm,v 1.4 2004/04/06 15:24:14 pasky Exp $
+$VERSION = 0.02;
 
 
 =head1 SYNOPSIS
@@ -162,7 +162,8 @@ sub render {
 sub _get_Imager_Font($) {
 	my $gfont = shift;
 
-	return undef unless (defined $gfont);
+	# Emergency fallback. Hope for at least something.
+	$gfont = '/usr/X11/lib/X11/fonts/TTF/luxisr.ttf' unless (defined $gfont);
 
 	return $gfont if (defined ref $gfont and ref $gfont eq 'Imager::Font');
 
@@ -192,9 +193,9 @@ Perl itself.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
-$Id: Imager.pm,v 1.2 2004/04/04 00:00:07 pasky Exp $
+$Id: Imager.pm,v 1.4 2004/04/06 15:24:14 pasky Exp $
 
 =cut
 

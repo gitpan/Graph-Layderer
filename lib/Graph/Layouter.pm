@@ -12,8 +12,8 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Layouter.pm,v 1.1.1.1 2004/04/03 22:58:29 pasky Exp $
-$VERSION = 0.01;
+# $Id: Layouter.pm,v 1.2 2004/04/06 15:24:14 pasky Exp $
+$VERSION = 0.02;
 
 
 =head1 SYNOPSIS
@@ -200,9 +200,9 @@ Perl itself.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
-$Id: Layouter.pm,v 1.1.1.1 2004/04/03 22:58:29 pasky Exp $
+$Id: Layouter.pm,v 1.2 2004/04/06 15:24:14 pasky Exp $
 
 =cut
 
