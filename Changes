@@ -1,0 +1,6 @@
+Revision history for Perl extensions Graph::Layouter and Graph::Renderer.
+
+0.01  Sun Apr  4 00:04:24 2004
+	- first working version; created by h2xs 1.21 with options
+		-A -X -n Graph::Layouter
+

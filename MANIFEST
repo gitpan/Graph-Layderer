@@ -1,0 +1,11 @@
+Changes
+MANIFEST
+MANIFEST.SKIP
+Makefile.PL
+README
+eg/trivial.pl
+lib/Graph/Layouter.pm
+lib/Graph/Layouter/Spring.pm
+lib/Graph/Renderer.pm
+lib/Graph/Renderer/Imager.pm
+t/00bootstrap.t
