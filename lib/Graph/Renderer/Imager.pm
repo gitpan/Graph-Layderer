@@ -12,8 +12,8 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Imager.pm,v 1.4 2004/04/06 15:24:14 pasky Exp $
-$VERSION = 0.02;
+# $Id: Imager.pm,v 1.5 2006/02/11 17:11:39 pasky Exp $
+$VERSION = 0.03;
 
 
 =head1 SYNOPSIS
@@ -89,27 +89,28 @@ sub render {
 	my $nodecolor = Imager::Color->new(0xff, 0xff, 0x00);
 	my $edgecolor = Imager::Color->new(0x66, 0x66, 0xff);
 
-	my $minx = $graph->get_attribute('layout_min1');
-	my $maxx = $graph->get_attribute('layout_max1');
-	my $miny = $graph->get_attribute('layout_min2');
-	my $maxy = $graph->get_attribute('layout_max2');
+	my $minx = $graph->get_graph_attribute('layout_min1');
+	my $maxx = $graph->get_graph_attribute('layout_max1');
+	my $miny = $graph->get_graph_attribute('layout_min2');
+	my $maxy = $graph->get_graph_attribute('layout_max2');
 
 	my $maxw = Graph::Renderer::_max_weight($graph);
 
-	my $gfont = _get_Imager_Font($graph->get_attribute('renderer_vertex_font'));
+	my $gfont = _get_Imager_Font($graph->get_graph_attribute('renderer_vertex_font'));
 
 	my @edges = $graph->edges;
-	while (my ($v1, $v2) = splice(@edges, 0, 2)) {
-		my $weight = $graph->get_attribute('weight', $v1, $v2);
+	foreach my $edge (@edges) {
+		my ($v1, $v2) = @$edge;
+		my $weight = $graph->get_edge_attribute(@$edge, 'weight');
 		$weight ||= 1; # TODO : configurable
 
 		next if $weight < $edge_threshold;
 		next unless $show_edges;
 
-		my $v1posx = $graph->get_attribute('layout_pos1', $v1);
-		my $v1posy = $graph->get_attribute('layout_pos2', $v1);
-		my $v2posx = $graph->get_attribute('layout_pos1', $v2);
-		my $v2posy = $graph->get_attribute('layout_pos2', $v2);
+		my $v1posx = $graph->get_vertex_attribute($v1, 'layout_pos1');
+		my $v1posy = $graph->get_vertex_attribute($v1, 'layout_pos2');
+		my $v2posx = $graph->get_vertex_attribute($v2, 'layout_pos1');
+		my $v2posy = $graph->get_vertex_attribute($v2, 'layout_pos2');
 
 		my $x1 = Graph::Renderer::_transpose_coord($v1posx, $minx, $maxx, $width) + $border_size;
 		my $y1 = Graph::Renderer::_transpose_coord($v1posy, $miny, $maxy, $height) + $border_size;
@@ -135,8 +136,8 @@ sub render {
 
 	#$image->setThickness(2);
 	foreach my $vertex ($graph->vertices) {
-		my $posx = $graph->get_attribute('layout_pos1', $vertex);
-		my $posy = $graph->get_attribute('layout_pos2', $vertex);
+		my $posx = $graph->get_vertex_attribute($vertex, 'layout_pos1');
+		my $posy = $graph->get_vertex_attribute($vertex, 'layout_pos2');
 
 		my $x = Graph::Renderer::_transpose_coord($posx, $minx, $maxx, $width) + $border_size;
 		my $y = Graph::Renderer::_transpose_coord($posy, $miny, $maxy, $height) + $border_size;
@@ -144,10 +145,10 @@ sub render {
 		$image->circle(color => $edgecolor, x => $x, y => $y, r => $node_radius, filled => 1, aa => 1);
 		$image->circle(color => $nodecolor, x => $x, y => $y, r => $node_radius - 2, filled => 1, aa => 1);
 
-		my $title = $graph->get_attribute('renderer_vertex_title', $vertex);
+		my $title = $graph->get_vertex_attribute($vertex, 'renderer_vertex_title');
 		$title = $vertex unless defined $title;
 
-		my $font = _get_Imager_Font($graph->get_attribute('renderer_vertex_font', $vertex));
+		my $font = _get_Imager_Font($graph->get_vertex_attribute($vertex, 'renderer_vertex_font'));
 		$font ||= $gfont;
 
 		$image->string(font => $font,
@@ -193,9 +194,9 @@ Perl itself.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
-$Id: Imager.pm,v 1.4 2004/04/06 15:24:14 pasky Exp $
+$Id: Imager.pm,v 1.5 2006/02/11 17:11:39 pasky Exp $
 
 =cut
 

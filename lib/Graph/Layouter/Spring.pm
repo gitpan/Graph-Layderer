@@ -12,8 +12,8 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Spring.pm,v 1.7 2004/04/06 15:24:14 pasky Exp $
-$VERSION = 0.02;
+# $Id: Spring.pm,v 1.8 2006/02/11 17:11:39 pasky Exp $
+$VERSION = 0.03;
 
 
 =head1 SYNOPSIS
@@ -41,7 +41,6 @@ See the C<Graph::Layouter> class documentation for usage description.
 
 
 use Graph;
-use Graph::Base;
 use Graph::Layouter;
 
 =head2 How does it work
@@ -106,10 +105,10 @@ sub layout {
 sub _layout_repulsive($$$) {
 	my ($graph, $vertex1, $vertex2) = @_;
 
-	my $dx = $graph->get_attribute('layout_pos1', $vertex2) -
-	         $graph->get_attribute('layout_pos1', $vertex1);
-	my $dy = $graph->get_attribute('layout_pos2', $vertex2) -
-	         $graph->get_attribute('layout_pos2', $vertex1);
+	my $dx = $graph->get_vertex_attribute($vertex2, 'layout_pos1') -
+	         $graph->get_vertex_attribute($vertex1, 'layout_pos1');
+	my $dy = $graph->get_vertex_attribute($vertex2, 'layout_pos2') -
+	         $graph->get_vertex_attribute($vertex1, 'layout_pos2');
 
 	my $d2 = $dx * $dx + $dy * $dy;
 	if ($d2 < 0.01) {
@@ -125,29 +124,29 @@ sub _layout_repulsive($$$) {
 		# Now, how simple and clear would this be without the silly
 		# encapsulation games...
 
-		$graph->set_attribute('layout_force1', $vertex2,
-			$graph->get_attribute('layout_force1', $vertex2)
+		$graph->set_vertex_attribute($vertex2, 'layout_force1',
+			$graph->get_vertex_attribute($vertex2, 'layout_force1')
 			+ $repulsive_force * $dx / $d);
-		$graph->set_attribute('layout_force2', $vertex2,
-			$graph->get_attribute('layout_force2', $vertex2)
+		$graph->set_vertex_attribute($vertex2, 'layout_force2',
+			$graph->get_vertex_attribute($vertex2, 'layout_force2')
 			+ $repulsive_force * $dy / $d);
 
-		$graph->set_attribute('layout_force1', $vertex1,
-			$graph->get_attribute('layout_force1', $vertex1)
+		$graph->set_vertex_attribute($vertex1, 'layout_force1',
+			$graph->get_vertex_attribute($vertex1, 'layout_force1')
 			- $repulsive_force * $dx / $d);
-		$graph->set_attribute('layout_force2', $vertex1,
-			$graph->get_attribute('layout_force2', $vertex1)
+		$graph->set_vertex_attribute($vertex1, 'layout_force2',
+			$graph->get_vertex_attribute($vertex1, 'layout_force2')
 			- $repulsive_force * $dy / $d);
 	}
 }
 
-sub _layout_attractive($$$) {
+sub _layout_attractive($@) {
 	my ($graph, $vertex1, $vertex2) = @_;
 
-	my $dx = $graph->get_attribute('layout_pos1', $vertex2) -
-	         $graph->get_attribute('layout_pos1', $vertex1);
-	my $dy = $graph->get_attribute('layout_pos2', $vertex2) -
-	         $graph->get_attribute('layout_pos2', $vertex1);
+	my $dx = $graph->get_vertex_attribute($vertex2, 'layout_pos1') -
+	         $graph->get_vertex_attribute($vertex1, 'layout_pos1');
+	my $dy = $graph->get_vertex_attribute($vertex2, 'layout_pos2') -
+	         $graph->get_vertex_attribute($vertex1, 'layout_pos2');
 
 	my $d2 = $dx * $dx + $dy * $dy;
 	if ($d2 < 0.01) {
@@ -163,22 +162,22 @@ sub _layout_attractive($$$) {
 	}
 
 	my $attractive_force = ($d2 - $k * $k) / $k;
-	my $weight = $graph->get_attribute('weight', $vertex1, $vertex2);
+	my $weight = $graph->get_edge_attribute($vertex1, $vertex2, 'weight');
 	$weight = 1 if not $weight or $weight < 1;
 	$attractive_force *= log($weight) * 0.5 + 1;
 
-	$graph->set_attribute('layout_force1', $vertex2,
-		$graph->get_attribute('layout_force1', $vertex2)
+	$graph->set_vertex_attribute($vertex2, 'layout_force1',
+		$graph->get_vertex_attribute($vertex2, 'layout_force1')
 		- $attractive_force * $dx / $d);
-	$graph->set_attribute('layout_force2', $vertex2,
-		$graph->get_attribute('layout_force2', $vertex2)
+	$graph->set_vertex_attribute($vertex2, 'layout_force2',
+		$graph->get_vertex_attribute($vertex2, 'layout_force2')
 		- $attractive_force * $dy / $d);
 
-	$graph->set_attribute('layout_force1', $vertex1,
-		$graph->get_attribute('layout_force1', $vertex1)
+	$graph->set_vertex_attribute($vertex1, 'layout_force1',
+		$graph->get_vertex_attribute($vertex1, 'layout_force1')
 		+ $attractive_force * $dx / $d);
-	$graph->set_attribute('layout_force2', $vertex1,
-		$graph->get_attribute('layout_force2', $vertex1)
+	$graph->set_vertex_attribute($vertex1, 'layout_force2',
+		$graph->get_vertex_attribute($vertex1, 'layout_force2')
 		+ $attractive_force * $dy / $d);
 }
 
@@ -201,15 +200,15 @@ sub _layout_iteration($$) {
 	# Forces on vertices due to edge attractions
 
 	my @edges = $graph->edges;
-	while (my ($vertex1, $vertex2) = splice (@edges, 0, 2)) {
-		_layout_attractive($graph, $vertex1, $vertex2);
+	foreach my $edge (@edges) {
+		_layout_attractive($graph, @$edge);
 	}
 
 	# Move by the given force
 
 	foreach my $vertex (@$vertices) {
-		my $xmove = $c * $graph->get_attribute('layout_force1', $vertex);
-		my $ymove = $c * $graph->get_attribute('layout_force2', $vertex);
+		my $xmove = $c * $graph->get_vertex_attribute($vertex, 'layout_force1');
+		my $ymove = $c * $graph->get_vertex_attribute($vertex, 'layout_force2');
 
 		my $max = $max_vertex_movement;
 		$xmove = $max if $xmove > $max;
@@ -217,15 +216,15 @@ sub _layout_iteration($$) {
 		$ymove = $max if $ymove > $max;
 		$ymove = -$max if $ymove < -$max;
 
-		$graph->set_attribute('layout_pos1', $vertex,
-			$graph->get_attribute('layout_pos1', $vertex)
+		$graph->set_vertex_attribute($vertex, 'layout_pos1',
+			$graph->get_vertex_attribute($vertex, 'layout_pos1')
 			+ $xmove);
-		$graph->set_attribute('layout_pos2', $vertex,
-			$graph->get_attribute('layout_pos2', $vertex)
+		$graph->set_vertex_attribute($vertex, 'layout_pos2',
+			$graph->get_vertex_attribute($vertex, 'layout_pos2')
 			+ $ymove);
 
-		$graph->set_attribute('layout_force1', $vertex, 0);
-		$graph->set_attribute('layout_force2', $vertex, 0);
+		$graph->set_vertex_attribute($vertex, 'layout_force1', 0);
+		$graph->set_vertex_attribute($vertex, 'layout_force2', 0);
 	}
 }
 
@@ -257,9 +256,9 @@ network tracker PieSpy written by Paul Mutton E<lt>paul@jibble.orgE<gt>.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
-$Id: Spring.pm,v 1.7 2004/04/06 15:24:14 pasky Exp $
+$Id: Spring.pm,v 1.8 2006/02/11 17:11:39 pasky Exp $
 
 =cut
 

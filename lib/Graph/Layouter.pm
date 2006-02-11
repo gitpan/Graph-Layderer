@@ -12,17 +12,14 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Layouter.pm,v 1.2 2004/04/06 15:24:14 pasky Exp $
-$VERSION = 0.02;
+# $Id: Layouter.pm,v 1.3 2006/02/11 17:11:39 pasky Exp $
+$VERSION = 0.03;
 
 
 =head1 SYNOPSIS
 
   my $graph = new Graph;
   ...
-
-  use Graph::Layouter;
-  my $layouted = Graph::Layouter::layout($graph);
 
   use Graph::Layouter qw(layout);
   my $layouted = layout($graph);
@@ -89,11 +86,20 @@ convenience.
 
 =item I<Class constructor interface>
 
-TODO
+The subroutine can be called as a class constructor, like C<$g =
+Graph::Layouter->layout($graph)>. It will take the C<$graph>, do stuff on it
+and returns reference to C<$graph> back, however reblessed to a
+C<Graph::Layouter> instance.
+
+In human language this means that after the call C<$graph> will still be the
+original object, only with some more attributes attached, whereas C<$g> will be
+a C<Graph::Layouter> instance; however any changes to C<$g> will be propagated
+to C<$graph> and vice versa.
 
 =item I<Class method interface>
 
-TODO
+When you already got a C<Graph::Layouter> instance, you can call this
+subroutine as C<$g->layout()>. It will relayout an already layouted graph.
 
 =back
 
@@ -102,7 +108,7 @@ TODO
 sub layout {
 	my $graph = shift;
 
-	croak "Graph::Layouter::layout() called instead of something of a subclass!";
+	croak "You want to use some subclass instead!";
 	$graph;
 }
 
@@ -117,10 +123,10 @@ sub _layout_prepare($) {
 	my $graph = shift;
 
 	foreach my $vertex ($graph->vertices) {
-		$graph->set_attribute('layout_pos1', $vertex, 0);
-		$graph->set_attribute('layout_pos2', $vertex, 0);
-		$graph->set_attribute('layout_force1', $vertex, 0);
-		$graph->set_attribute('layout_force2', $vertex, 0);
+		$graph->set_vertex_attribute($vertex, 'layout_pos1', 0);
+		$graph->set_vertex_attribute($vertex, 'layout_pos2', 0);
+		$graph->set_vertex_attribute($vertex, 'layout_force1', 0);
+		$graph->set_vertex_attribute($vertex, 'layout_force2', 0);
 	}
 
 	$graph;
@@ -142,18 +148,18 @@ sub _layout_calc_bounds($) {
 	my ($minx, $maxx, $miny, $maxy) = ('Infinity', -'Infinity', 'Infinity', -'Infinity');
 
 	foreach my $vertex ($graph->vertices) {
-		my @pos = ($graph->get_attribute('layout_pos1', $vertex),
-		           $graph->get_attribute('layout_pos2', $vertex));
+		my @pos = ($graph->get_vertex_attribute($vertex, 'layout_pos1'),
+		           $graph->get_vertex_attribute($vertex, 'layout_pos2'));
 		$maxx = $pos[0] if $pos[0] > $maxx;
 		$minx = $pos[0] if $pos[0] < $minx;
 		$maxy = $pos[1] if $pos[1] > $maxy;
 		$miny = $pos[1] if $pos[1] < $miny;
 	}
 
-	$graph->set_attribute('layout_min1', $minx);
-	$graph->set_attribute('layout_max1', $maxx);
-	$graph->set_attribute('layout_min2', $miny);
-	$graph->set_attribute('layout_max2', $maxy);
+	$graph->set_graph_attribute('layout_min1', $minx);
+	$graph->set_graph_attribute('layout_max1', $maxx);
+	$graph->set_graph_attribute('layout_min2', $miny);
+	$graph->set_graph_attribute('layout_max2', $maxy);
 	$graph;
 }
 
@@ -186,8 +192,7 @@ C<Graph>, C<Graph::Renderer>
 
 =head1 BUGS
 
-The object-oriented interface is missing as well as some more universal layout
-calling interface (hash parameters).
+Some more universal layout calling interface (hash parameters) is missing.
 
 
 =head1 COPYRIGHT
@@ -200,9 +205,9 @@ Perl itself.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
-$Id: Layouter.pm,v 1.2 2004/04/06 15:24:14 pasky Exp $
+$Id: Layouter.pm,v 1.3 2006/02/11 17:11:39 pasky Exp $
 
 =cut
 

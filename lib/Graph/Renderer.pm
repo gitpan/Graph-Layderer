@@ -12,8 +12,8 @@ use Carp qw (croak);
 
 use vars qw ($VERSION @ISA @EXPORT_OK);
 
-# $Id: Renderer.pm,v 1.3 2004/04/06 15:24:14 pasky Exp $
-$VERSION = 0.02;
+# $Id: Renderer.pm,v 1.4 2006/02/11 17:11:39 pasky Exp $
+$VERSION = 0.03;
 
 
 =head1 SYNOPSIS
@@ -146,8 +146,8 @@ sub _max_weight($) {
 	my $max_weight = 0;
 
 	my @edges = $graph->edges;
-	while (my ($v1, $v2) = splice(@edges, 0, 2)) {
-		my $weight = $graph->get_attribute('weight', $v1, $v2);
+	foreach my $edge (@edges) {
+		my $weight = $graph->get_edge_attribute(@$edge, 'weight');
 		$weight ||= 1; # TODO : configurable
 		$max_weight = $weight if $max_weight < $weight;
 	}
@@ -191,9 +191,9 @@ Perl itself.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
-$Id: Renderer.pm,v 1.3 2004/04/06 15:24:14 pasky Exp $
+$Id: Renderer.pm,v 1.4 2006/02/11 17:11:39 pasky Exp $
 
 =cut
 
